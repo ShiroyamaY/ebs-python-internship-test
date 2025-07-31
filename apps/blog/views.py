@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from rest_framework.generics import GenericAPIView, get_object_or_404
+from rest_framework.generics import GenericAPIView, ListCreateAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -14,13 +14,15 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
 
 
-class BlogListView(GenericAPIView):
+class BlogListCreateView(ListCreateAPIView):
+    queryset = Blog.objects.all()
     serializer_class = BlogSerializer
     permission_classes = (ReadOnly,)
 
-    def get(self, request: Request) -> Response:
-        blogs = Blog.objects.all()
-        return Response(self.get_serializer(blogs, many=True).data)
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [ReadOnly()]
+        return [IsAuthenticated()]
 
 
 class BlogItemView(GenericAPIView):
