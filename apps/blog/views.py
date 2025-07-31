@@ -1,11 +1,11 @@
 from rest_framework import viewsets
-from rest_framework.generics import GenericAPIView, ListCreateAPIView, get_object_or_404
+from rest_framework.generics import CreateAPIView, GenericAPIView, ListCreateAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.blog.models import Blog, Category
-from apps.blog.serializers import BlogSerializer, CategorySerializer
+from apps.blog.serializers import BlogSerializer, CategorySerializer, CommentSerializer
 from apps.common.permissions import ReadOnly
 
 
@@ -31,4 +31,17 @@ class BlogItemView(GenericAPIView):
 
     def get(self, request: Request, pk: int) -> Response:
         blog: Blog = get_object_or_404(Blog.objects.all(), pk=pk)
+
         return Response(self.get_serializer(blog).data)
+
+
+class BlogCommentCreateView(CreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_blog(self):
+        return get_object_or_404(Blog, id=self.kwargs["blog_id"])
+
+    def perform_create(self, serializer):
+        blog: Blog = self.get_blog()
+        serializer.save(blog=blog)
